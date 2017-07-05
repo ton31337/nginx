@@ -46,6 +46,10 @@ static ngx_int_t ngx_http_variable_cookie(ngx_http_request_t *r,
     ngx_http_variable_value_t *v, uintptr_t data);
 static ngx_int_t ngx_http_variable_argument(ngx_http_request_t *r,
     ngx_http_variable_value_t *v, uintptr_t data);
+#if (NGX_HAVE_SOCKET_COOKIE)
+static ngx_int_t ngx_http_variable_socket_cookie(ngx_http_request_t *r,
+    ngx_http_variable_value_t *v, uintptr_t data);
+#endif
 #if (NGX_HAVE_TCP_INFO)
 static ngx_int_t ngx_http_variable_tcpinfo(ngx_http_request_t *r,
     ngx_http_variable_value_t *v, uintptr_t data);
@@ -359,6 +363,10 @@ static ngx_http_variable_t  ngx_http_core_variables[] = {
 
     { ngx_string("tcpinfo_rcv_space"), NULL, ngx_http_variable_tcpinfo,
       3, NGX_HTTP_VAR_NOCACHEABLE, 0 },
+#endif
+#if (NGX_HAVE_SOCKET_COOKIE)
+    { ngx_string("socket_cookie"), NULL, ngx_http_variable_socket_cookie,
+      0, NGX_HTTP_VAR_NOCACHEABLE, 0 },
 #endif
 
     { ngx_string("http_"), NULL, ngx_http_variable_unknown_header_in,
@@ -1098,6 +1106,28 @@ ngx_http_variable_argument(ngx_http_request_t *r, ngx_http_variable_value_t *v,
     return NGX_OK;
 }
 
+#if (NGX_HAVE_SOCKET_COOKIE)
+static ngx_int_t
+ngx_http_variable_socket_cookie(ngx_http_request_t *r, ngx_http_variable_value_t *v,
+    uintptr_t data)
+{
+    uint64_t         cookie;
+    socklen_t        cookie_len = sizeof(cookie);;
+
+    if (getsockopt(0, SOL_SOCKET, SO_COOKIE, &cookie, &cookie_len) == -1) {
+        v->not_found = 1;
+	return NGX_OK;
+    }
+
+    v->data = cookie;
+    v->len = cookie_len;
+    v->valid = 1;
+    v->no_cacheable = 0;
+    v->not_found = 0;
+
+    return NGX_OK;
+}
+#endif
 
 #if (NGX_HAVE_TCP_INFO)
 

@@ -331,6 +331,16 @@ ngx_feature_libs=
 ngx_feature_test="setsockopt(0, SOL_SOCKET, SO_REUSEPORT, NULL, 0)"
 . auto/feature
 
+ngx_feature="SO_COOKIE"
+ngx_feature_name="NGX_HAVE_SOCKET_COOKIE"
+ngx_feature_run=no
+ngx_feature_incs="#include <sys/socket.h>"
+ngx_feature_path=
+ngx_feature_libs=
+ngx_feature_test="uint64_t cookie;
+                  socklen_t cookie_len = sizeof(cookie);
+                  getsockopt(0, SOL_SOCKET, SO_COOKIE, &cookie, &cookie_len)"
+. auto/feature
 
 ngx_feature="SO_ACCEPTFILTER"
 ngx_feature_name="NGX_HAVE_DEFERRED_ACCEPT"
